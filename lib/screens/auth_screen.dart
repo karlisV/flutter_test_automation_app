@@ -3,9 +3,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:test_automation/providers/auth.dart';
 
-import 'home_screen.dart';
+import './home_screen.dart';
+
+import '../providers/auth.dart';
 
 class AuthScreen extends StatefulWidget {
   static const routeName = '/authenticate';
@@ -28,6 +29,21 @@ class _AuthScreenState extends State<AuthScreen> {
       await Provider.of<AuthProvider>(context, listen: false).login(email, pwd);
     }
 
+    Future<void> _googleAuthenticate() async {
+      await Provider.of<AuthProvider>(context, listen: false)
+          .signInWithGoogle();
+    }
+
+    void _navigateToHomeScreen() {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
+      );
+    }
+
     SnackBar snackBar(String text) {
       return SnackBar(
         content: Text(text),
@@ -38,11 +54,13 @@ class _AuthScreenState extends State<AuthScreen> {
       appBar: AppBar(
         title: const Text('Test automation demo app'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Form(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Form(
                 key: formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,32 +97,60 @@ class _AuthScreenState extends State<AuthScreen> {
                     const Padding(
                         padding: EdgeInsets.symmetric(vertical: 20.0)),
                     ElevatedButton(
-                        onPressed: () async {
-                          if (formKey.currentState!.validate()) {
-                            try {
-                              await _authenticate(emailTextController.text,
-                                  pwdTextController.text);
+                      onPressed: () async {
+                        if (formKey.currentState!.validate()) {
+                          try {
+                            await _authenticate(emailTextController.text,
+                                pwdTextController.text);
 
-                              if (!mounted) return;
-
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
-                                ),
-                              );
-                            } on FirebaseAuthException catch (e) {
-                              log(e.code);
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar(e.code));
-                            }
-                          } else {
-                            log('Form validation triggered');
+                            _navigateToHomeScreen();
+                          } on FirebaseAuthException catch (e) {
+                            log(e.code);
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(snackBar(e.code));
                           }
-                        },
-                        child: const Text('Login'))
+                        } else {
+                          log('Form validation triggered');
+                        }
+                      },
+                      child: const Text('Login'),
+                    ),
+                    const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0)),
+                    InkWell(
+                      onTap: () async {
+                        try {
+                          await _googleAuthenticate();
+
+                          _navigateToHomeScreen();
+                        } on AssertionError catch (e) {
+                          log("Sign-in modal closed");
+                          log("$e");
+                        }
+                      },
+                      child: SizedBox(
+                        width: 300,
+                        height: 80,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Image.network(
+                                'http://pngimg.com/uploads/google/google_PNG19635.png',
+                                fit: BoxFit.cover),
+                            const SizedBox(
+                              width: 5.0,
+                            ),
+                            const Text('Sign-in with Google')
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
-                ))
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
