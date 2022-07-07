@@ -6,6 +6,13 @@ class AuthProvider with ChangeNotifier {
   Future<void> login(String email, String pwd) async {
     await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: pwd);
+    notifyListeners();
+  }
+
+  Future<void> register(String email, String pwd) async {
+    await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: pwd);
+    notifyListeners();
   }
 
   Future<UserCredential> signInWithGoogle() async {

@@ -7,23 +7,34 @@ import 'package:provider/provider.dart';
 import '../providers/auth.dart';
 import '../screens/home_screen.dart';
 
-class LoginWidget extends StatefulWidget {
+class AuthWidget extends StatefulWidget {
   final dynamic cardFlipController;
+  final bool registrationForm;
+  final String title;
 
-  const LoginWidget({Key? key, required this.cardFlipController}) : super(key: key);
+  const AuthWidget({
+    Key? key,
+    required this.cardFlipController,
+    required this.registrationForm,
+    required this.title,
+  }) : super(key: key);
 
   @override
-  State<LoginWidget> createState() => _LoginWidgetState();
+  State<AuthWidget> createState() => _AuthWidgetState();
 }
 
-class _LoginWidgetState extends State<LoginWidget> {
+class _AuthWidgetState extends State<AuthWidget> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final emailTextController = TextEditingController();
   final pwdTextController = TextEditingController();
 
   Future<void> _authenticate(String email, String pwd) async {
-    await Provider.of<AuthProvider>(context, listen: false).login(email, pwd);
+    widget.registrationForm
+        ? await Provider.of<AuthProvider>(context, listen: false)
+            .register(email, pwd)
+        : await Provider.of<AuthProvider>(context, listen: false)
+            .login(email, pwd);
   }
 
   Future<void> _googleAuthenticate() async {
@@ -50,12 +61,17 @@ class _LoginWidgetState extends State<LoginWidget> {
   Widget build(BuildContext context) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 40, bottom: 80),
+            child: Text(
+              widget.title,
+              style: const TextStyle(fontSize: 20),
+            ),
+          ),
           Form(
             key: formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 TextFormField(
                   decoration: const InputDecoration(
@@ -108,47 +124,54 @@ class _LoginWidgetState extends State<LoginWidget> {
                           log('Form validation triggered');
                         }
                       },
-                      child: const Text('Login'),
+                      child: Text(widget.title),
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 25.0),
                     ),
                     ElevatedButton(
-                        onPressed: () => widget.cardFlipController.toggleCard(),
-                        child: const Text('Register'))
+                      onPressed: () => widget.cardFlipController.toggleCard(),
+                      child: widget.registrationForm
+                          ? const Text('Back to login')
+                          : const Text('Register'),
+                    )
                   ],
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),
                 ),
-                InkWell(
-                  onTap: () async {
-                    try {
-                      await _googleAuthenticate();
+                Container(
+                  child: widget.registrationForm
+                      ? null
+                      : InkWell(
+                          onTap: () async {
+                            try {
+                              await _googleAuthenticate();
 
-                      _navigateToHomeScreen();
-                    } on AssertionError catch (e) {
-                      log("Sign-in modal closed");
-                      log("$e");
-                    }
-                  },
-                  child: SizedBox(
-                    width: 300,
-                    height: 40,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Image.network(
-                            'http://pngimg.com/uploads/google/google_PNG19635.png',
-                            fit: BoxFit.cover),
-                        const SizedBox(
-                          width: 5.0,
+                              _navigateToHomeScreen();
+                            } on AssertionError catch (e) {
+                              log("Sign-in modal closed");
+                              log("$e");
+                            }
+                          },
+                          child: SizedBox(
+                            width: 300,
+                            height: 40,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Image.network(
+                                    'http://pngimg.com/uploads/google/google_PNG19635.png',
+                                    fit: BoxFit.cover),
+                                const SizedBox(
+                                  width: 5.0,
+                                ),
+                                const Text('Sign-in with Google')
+                              ],
+                            ),
+                          ),
                         ),
-                        const Text('Sign-in with Google')
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),

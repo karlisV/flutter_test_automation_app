@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
-import 'package:test_automation/widgets/register.dart';
 
-import '../widgets/login.dart';
+import '../widgets/auth.dart';
 
 class AuthScreen extends StatefulWidget {
   static const routeName = '/authenticate';
@@ -35,10 +34,14 @@ class _AuthScreenState extends State<AuthScreen> {
         child: FlipCard(
           controller: flipCardController,
           flipOnTouch: false,
-          front: LoginWidget(
+          front: AuthWidget(
+            registrationForm: false,
+            title: 'Login',
             cardFlipController: flipCardController,
           ),
-          back: RegisterWidget(
+          back: AuthWidget(
+            registrationForm: true,
+            title: 'Register',
             cardFlipController: flipCardController,
           ),
         ),
