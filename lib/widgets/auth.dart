@@ -1,21 +1,19 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
 
-import '../providers/auth.dart';
-import '../screens/home_screen.dart';
+import '../widgets/login_form_field.dart';
+import '../widgets/screen_flip_button.dart';
+import '../widgets/google_sign_in_button.dart';
+import '../widgets/sign_in_button.dart';
 
 class AuthWidget extends StatefulWidget {
   final dynamic cardFlipController;
-  final bool registrationForm;
+  final bool isRegistrationForm;
   final String title;
 
   const AuthWidget({
     Key? key,
     required this.cardFlipController,
-    required this.registrationForm,
+    required this.isRegistrationForm,
     required this.title,
   }) : super(key: key);
 
@@ -28,155 +26,85 @@ class _AuthWidgetState extends State<AuthWidget> {
 
   final emailTextController = TextEditingController();
   final pwdTextController = TextEditingController();
-
-  Future<void> _authenticate(String email, String pwd) async {
-    widget.registrationForm
-        ? await Provider.of<AuthProvider>(context, listen: false)
-            .register(email, pwd)
-        : await Provider.of<AuthProvider>(context, listen: false)
-            .login(email, pwd);
-  }
-
-  Future<void> _googleAuthenticate() async {
-    await Provider.of<AuthProvider>(context, listen: false).signInWithGoogle();
-  }
-
-  void _navigateToHomeScreen() {
-    if (!mounted) return;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const HomeScreen(),
-      ),
-    );
-  }
-
-  SnackBar snackBar(String text) {
-    return SnackBar(
-      content: Text(text),
-    );
-  }
+  final confirmPwdController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 40, bottom: 80),
-            child: Text(
-              widget.title,
-              style: const TextStyle(fontSize: 20),
+    return SingleChildScrollView(
+      child: Center(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 40, bottom: 80),
+              child: Text(
+                widget.title,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+              ),
             ),
-          ),
-          Form(
-            key: formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your email',
+            Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  LoginFormField(
+                    type: 'EMAIL',
+                    controller: emailTextController,
                   ),
-                  controller: emailTextController,
-                  validator: (String? value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        !value.contains(RegExp(r'^(.+)@(.+)$'))) {
-                      return 'Please enter valid email';
-                    }
-                    return null;
-                  },
-                ),
-                const Padding(padding: EdgeInsets.symmetric(vertical: 20.0)),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your password',
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
                   ),
-                  obscureText: true,
-                  controller: pwdTextController,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter password';
-                    }
-                    return null;
-                  },
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.0),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          try {
-                            await _authenticate(emailTextController.text,
-                                pwdTextController.text);
-
-                            _navigateToHomeScreen();
-                          } on FirebaseAuthException catch (e) {
-                            log(e.code);
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(snackBar(e.code));
-                          }
-                        } else {
-                          log('Form validation triggered');
-                        }
-                      },
-                      child: Text(widget.title),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 25.0),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => widget.cardFlipController.toggleCard(),
-                      child: widget.registrationForm
-                          ? const Text('Back to login')
-                          : const Text('Register'),
-                    )
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.0),
-                ),
-                Container(
-                  child: widget.registrationForm
-                      ? null
-                      : InkWell(
-                          onTap: () async {
-                            try {
-                              await _googleAuthenticate();
-
-                              _navigateToHomeScreen();
-                            } on AssertionError catch (e) {
-                              log("Sign-in modal closed");
-                              log("$e");
-                            }
-                          },
-                          child: SizedBox(
-                            width: 300,
-                            height: 40,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Image.network(
-                                    'http://pngimg.com/uploads/google/google_PNG19635.png',
-                                    fit: BoxFit.cover),
-                                const SizedBox(
-                                  width: 5.0,
-                                ),
-                                const Text('Sign-in with Google')
-                              ],
-                            ),
+                  LoginFormField(
+                    type: 'PASSWORD',
+                    controller: pwdTextController,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                  ),
+                  Container(
+                      child: widget.isRegistrationForm
+                          ? Padding(
+                              padding: const EdgeInsets.only(bottom: 50.0),
+                              child: LoginFormField(
+                                type: 'PASSWORD_CONFIRM',
+                                controller: confirmPwdController,
+                              ),
+                            )
+                          : null),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SignInBtn(
+                        formKey: formKey,
+                        emailController: emailTextController,
+                        pwdController: pwdTextController,
+                        confirmPwdController: confirmPwdController,
+                        isRegistration: widget.isRegistrationForm,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 25.0),
+                      ),
+                      ScreenFlipBtn(
+                          toggleCard: widget.cardFlipController.toggleCard,
+                          isRegistrationForm: widget.isRegistrationForm)
+                    ],
+                  ),
+                  Container(
+                    child: widget.isRegistrationForm
+                        ? null
+                        : Column(
+                            children: const [
+                              Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20.0),
+                              ),
+                              GoogleSignInBtn(),
+                            ],
                           ),
-                        ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

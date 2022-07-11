@@ -35,12 +35,12 @@ class _AuthScreenState extends State<AuthScreen> {
           controller: flipCardController,
           flipOnTouch: false,
           front: AuthWidget(
-            registrationForm: false,
+            isRegistrationForm: false,
             title: 'Login',
             cardFlipController: flipCardController,
           ),
           back: AuthWidget(
-            registrationForm: true,
+            isRegistrationForm: true,
             title: 'Register',
             cardFlipController: flipCardController,
           ),

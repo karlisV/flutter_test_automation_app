@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../screens/auth_screen.dart';
@@ -24,13 +24,13 @@ class AppDrawer extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
-              trailing: const Icon(Icons.exit_to_app),
-              leading: const Text("Logout"),
-              onTap: () {
-                Provider.of<AuthProvider>(context, listen: false).logout();
-                Navigator.of(context)
-                    .pushReplacementNamed(AuthScreen.routeName);
-              })
+            trailing: const Icon(Icons.exit_to_app),
+            leading: const Text("Logout"),
+            onTap: () {
+              Provider.of<AuthProvider>(context, listen: false).logout();
+              Navigator.of(context).pushReplacementNamed(AuthScreen.routeName);
+            },
+          )
         ],
       ),
     );
